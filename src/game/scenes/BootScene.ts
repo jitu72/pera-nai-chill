@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { BALANCE } from "@/config/balance";
-import { MAP_SCENARIOS } from "@/config/maps";
+import { MAP_SCENARIOS, MapScenario } from "@/config/maps";
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -1079,20 +1079,10 @@ export class BootScene extends Phaser.Scene {
       g.destroy();
     }
 
-    // Near buildings for Farmgate
-    if (!this.textures.exists("bg-near-farmgate")) {
-      const farmgateMap = MAP_SCENARIOS.find((m) => m.id === "farmgate")!;
-      this.generateNearBuildingsTexture("bg-near-farmgate", farmgateMap.billboards, [
-        "#1c1917", "#292524", "#44403c", "#1e1b4b", "#312e81"
-      ]);
-    }
-
-    // Near buildings for New Market
-    if (!this.textures.exists("bg-near-newmarket")) {
-      const newmarketMap = MAP_SCENARIOS.find((m) => m.id === "newmarket")!;
-      this.generateNearBuildingsTexture("bg-near-newmarket", newmarketMap.billboards, [
-        "#3f1d38", "#1e1b4b", "#4a044e", "#172554", "#2e1065"
-      ]);
+    // 26b. Distinct location compositions. These are deliberately generated
+    // as separate layers so the gameplay road and camera remain unchanged.
+    for (const map of MAP_SCENARIOS) {
+      this.generateLocationBackgrounds(map);
     }
 
     // 27. Comic Face Reaction Props (Dizzy Stars, Band-Aid, Anime Tears, Shocked Eyes)
@@ -2205,6 +2195,315 @@ export class BootScene extends Phaser.Scene {
       ctx.fillText(bb.sub, bbX + bbWidth / 2, bbY + 28);
     }
 
+    this.textures.addCanvas(key, canvas);
+  }
+
+  private generateLocationBackgrounds(map: MapScenario) {
+    const farKey = `bg-far-${map.id}`;
+    const nearKey = `bg-near-${map.id}`;
+    const landmarkKey = `bg-landmark-${map.id}`;
+
+    if (!this.textures.exists(farKey)) {
+      const canvas = document.createElement("canvas");
+      canvas.width = BALANCE.LOGICAL_WIDTH;
+      canvas.height = 300;
+      const ctx = canvas.getContext("2d")!;
+      const palettes = {
+        mirpur: ["#263449", "#334155", "#475569"],
+        farmgate: ["#172554", "#1e3a8a", "#334155"],
+        newmarket: ["#3b1d4a", "#581c87", "#7e22ce"],
+      } as const;
+      const colors = palettes[map.id];
+      let x = 0;
+      let index = 0;
+      while (x < BALANCE.LOGICAL_WIDTH) {
+        const width = map.id === "farmgate"
+          ? 96 + (index % 3) * 34
+          : map.id === "newmarket"
+          ? 110 + (index % 2) * 26
+          : 72 + (index % 4) * 24;
+        const height = map.id === "farmgate"
+          ? 130 + (index % 4) * 22
+          : map.id === "newmarket"
+          ? 90 + (index % 3) * 20
+          : 105 + (index % 5) * 18;
+        ctx.fillStyle = colors[index % colors.length];
+        ctx.fillRect(x, 300 - height, width - 5, height);
+        ctx.fillStyle = "rgba(250, 204, 21, 0.3)";
+        for (let wy = 300 - height + 24; wy < 285; wy += 28) {
+          for (let wx = x + 12; wx < x + width - 16; wx += 24) {
+            ctx.fillRect(wx, wy, 10, 12);
+          }
+        }
+        if (map.id === "newmarket") {
+          ctx.fillStyle = "#f472b6";
+          ctx.fillRect(x, 300 - height, width - 5, 6);
+        }
+        x += width;
+        index++;
+      }
+      this.textures.addCanvas(farKey, canvas);
+    }
+
+    if (!this.textures.exists(nearKey)) {
+      this.generateLocationNearTexture(nearKey, map);
+    }
+
+    if (!this.textures.exists(landmarkKey)) {
+      this.generateLandmarkTexture(landmarkKey, map.id);
+    }
+
+    if (!this.textures.exists(map.roadKey)) {
+      this.generateLocationRoadTexture(map.roadKey, map.id);
+    }
+
+    if (map.id !== "newmarket") {
+      const metroKey = `prop-metro-track-${map.id}`;
+      if (!this.textures.exists(metroKey)) {
+        this.generateMetroTrackTexture(metroKey, map.id);
+      }
+    }
+  }
+
+  private generateLocationNearTexture(key: string, map: MapScenario) {
+    const canvas = document.createElement("canvas");
+    canvas.width = BALANCE.LOGICAL_WIDTH;
+    canvas.height = 360;
+    const ctx = canvas.getContext("2d")!;
+    const palettes = {
+      mirpur: ["#334155", "#475569", "#1e293b", "#64748b"],
+      farmgate: ["#292524", "#44403c", "#1c1917", "#312e81"],
+      newmarket: ["#831843", "#9d174d", "#581c87", "#be185d"],
+    } as const;
+    const colors = palettes[map.id];
+    const widths = map.id === "farmgate"
+      ? [180, 90, 220, 130, 170, 100, 210]
+      : map.id === "newmarket"
+      ? [170, 145, 190, 120, 160, 135, 180]
+      : [100, 145, 92, 175, 118, 150, 88, 160];
+    let x = 0;
+    let index = 0;
+    while (x < BALANCE.LOGICAL_WIDTH) {
+      const width = widths[index % widths.length];
+      const height = map.id === "farmgate"
+        ? 220 + (index % 4) * 28
+        : map.id === "newmarket"
+        ? 145 + (index % 3) * 24
+        : 175 + (index % 5) * 25;
+      const y = 360 - height;
+      ctx.fillStyle = colors[index % colors.length];
+      ctx.fillRect(x, y, width - 5, height);
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x, y, width - 5, height);
+
+      if (map.id === "newmarket") {
+        ctx.fillStyle = ["#f97316", "#22c55e", "#38bdf8"][index % 3];
+        ctx.fillRect(x + 4, y + 34, width - 13, 30);
+        ctx.fillStyle = "#fef3c7";
+        for (let shopX = x + 12; shopX < x + width - 14; shopX += 26) {
+          ctx.fillRect(shopX, y + 78, 18, Math.min(42, height - 90));
+        }
+        ctx.fillStyle = "#facc15";
+        ctx.fillRect(x + 3, y + 8, width - 11, 18);
+      } else {
+        ctx.fillStyle = index % 2 === 0
+          ? "rgba(254, 240, 138, 0.75)"
+          : "rgba(125, 211, 252, 0.65)";
+        for (let wy = y + 26; wy < 345; wy += 30) {
+          for (let wx = x + 13; wx < x + width - 15; wx += 27) {
+            ctx.fillRect(wx, wy, 14, 17);
+          }
+        }
+      }
+
+      const billboard = map.billboards[index % map.billboards.length];
+      const signY = y + (map.id === "newmarket" ? 6 : 12);
+      ctx.fillStyle = billboard.bg;
+      ctx.fillRect(x + 6, signY, width - 17, 30);
+      ctx.strokeStyle = "#0f172a";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x + 6, signY, width - 17, 30);
+      ctx.fillStyle = billboard.fg;
+      ctx.font = "bold 10px 'Hind Siliguri', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(billboard.main, x + (width - 5) / 2, signY + 13, width - 22);
+      ctx.font = "bold 7px 'Luckiest Guy', Impact, sans-serif";
+      ctx.fillText(billboard.sub, x + (width - 5) / 2, signY + 25, width - 22);
+      x += width;
+      index++;
+    }
+
+    if (map.id === "newmarket") {
+      ctx.fillStyle = "#f59e0b";
+      for (let stallX = 25; stallX < BALANCE.LOGICAL_WIDTH; stallX += 145) {
+        ctx.fillRect(stallX, 322, 92, 8);
+        ctx.fillStyle = "#ef4444";
+        ctx.fillRect(stallX + 8, 330, 18, 30);
+        ctx.fillStyle = "#0ea5e9";
+        ctx.fillRect(stallX + 38, 330, 18, 30);
+        ctx.fillStyle = "#f59e0b";
+      }
+    }
+
+    this.textures.addCanvas(key, canvas);
+  }
+
+  private generateLandmarkTexture(key: string, mapId: MapScenario["id"]) {
+    const canvas = document.createElement("canvas");
+    canvas.width = BALANCE.LOGICAL_WIDTH;
+    canvas.height = 260;
+    const ctx = canvas.getContext("2d")!;
+    ctx.strokeStyle = "#111827";
+    ctx.lineWidth = 5;
+
+    if (mapId === "mirpur") {
+      // MRT-6 station and the four-arm footbridge around Mirpur 10 circle.
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillRect(500, 48, 280, 20);
+      ctx.fillStyle = "#64748b";
+      [535, 645, 755].forEach((x) => ctx.fillRect(x, 68, 24, 180));
+      ctx.strokeRect(500, 48, 280, 20);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillRect(570, 25, 135, 30);
+      ctx.fillStyle = "#15803d";
+      ctx.fillRect(575, 35, 125, 7);
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(625, 112, 16, 110);
+      ctx.fillRect(505, 158, 255, 14);
+      ctx.fillStyle = "#dc2626";
+      ctx.fillRect(520, 160, 225, 7);
+      ctx.strokeRect(505, 158, 255, 14);
+      ctx.fillStyle = "#fbbf24";
+      ctx.beginPath();
+      ctx.arc(300, 235, 70, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#64748b";
+      ctx.fillRect(215, 228, 170, 14);
+      ctx.fillStyle = "#dc2626";
+      ctx.fillRect(215, 228, 38, 14);
+      ctx.fillStyle = "#15803d";
+      ctx.fillRect(347, 228, 38, 14);
+    } else if (mapId === "farmgate") {
+      // Broad flyover, station deck, bus-stop signage, and a park pocket.
+      ctx.fillStyle = "#64748b";
+      ctx.fillRect(0, 62, BALANCE.LOGICAL_WIDTH, 32);
+      ctx.fillStyle = "#94a3b8";
+      [120, 340, 570, 820, 1080].forEach((x) => ctx.fillRect(x, 94, 34, 150));
+      ctx.strokeRect(0, 62, BALANCE.LOGICAL_WIDTH, 32);
+      ctx.fillStyle = "#facc15";
+      for (let x = 10; x < BALANCE.LOGICAL_WIDTH; x += 72) {
+        ctx.fillRect(x, 72, 42, 4);
+      }
+      ctx.fillStyle = "#166534";
+      ctx.fillRect(930, 170, 250, 72);
+      ctx.fillStyle = "#22c55e";
+      [965, 1030, 1100, 1150].forEach((x) => {
+        ctx.beginPath();
+        ctx.arc(x, 166, 24, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.fillStyle = "#dc2626";
+      ctx.fillRect(250, 120, 150, 28);
+      ctx.fillStyle = "#fef08a";
+      ctx.font = "bold 15px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("ফার্মগেট", 325, 140);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillRect(440, 145, 200, 16);
+      ctx.strokeRect(440, 145, 200, 16);
+    } else {
+      // Triangular New Market roof with high arched gates and shopping stalls.
+      ctx.fillStyle = "#f59e0b";
+      ctx.beginPath();
+      ctx.moveTo(290, 215);
+      ctx.lineTo(640, 28);
+      ctx.lineTo(990, 215);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#dc2626";
+      ctx.beginPath();
+      ctx.moveTo(360, 208);
+      ctx.lineTo(640, 62);
+      ctx.lineTo(920, 208);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#fef3c7";
+      [470, 590, 710, 830].forEach((x) => {
+        ctx.beginPath();
+        ctx.arc(x, 202, 34, Math.PI, 0);
+        ctx.lineTo(x + 34, 245);
+        ctx.lineTo(x - 34, 245);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      });
+      ctx.fillStyle = "#22c55e";
+      for (let x = 30; x < BALANCE.LOGICAL_WIDTH; x += 170) {
+        ctx.fillRect(x, 238, 110, 9);
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(x + 12, 247, 24, 30);
+        ctx.fillStyle = "#ef4444";
+        ctx.fillRect(x + 46, 247, 24, 30);
+        ctx.fillStyle = "#22c55e";
+      }
+    }
+
+    this.textures.addCanvas(key, canvas);
+  }
+
+  private generateLocationRoadTexture(key: string, mapId: MapScenario["id"]) {
+    const canvas = document.createElement("canvas");
+    canvas.width = BALANCE.LOGICAL_WIDTH;
+    canvas.height = 370;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = mapId === "newmarket" ? "#292524" : "#0f172a";
+    ctx.fillRect(0, 0, BALANCE.LOGICAL_WIDTH, 370);
+    ctx.fillStyle = mapId === "newmarket" ? "#be185d" : mapId === "farmgate" ? "#f97316" : "#059669";
+    ctx.fillRect(0, 0, BALANCE.LOGICAL_WIDTH, 8);
+    ctx.fillStyle = "#facc15";
+    for (let x = 0; x < BALANCE.LOGICAL_WIDTH; x += mapId === "farmgate" ? 52 : 78) {
+      ctx.fillRect(x, 105, mapId === "newmarket" ? 26 : 34, 5);
+      ctx.fillRect(x, 165, mapId === "farmgate" ? 42 : 34, 5);
+    }
+    if (mapId === "farmgate") {
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillRect(0, 238, BALANCE.LOGICAL_WIDTH, 8);
+      ctx.fillStyle = "#dc2626";
+      for (let x = 0; x < BALANCE.LOGICAL_WIDTH; x += 80) {
+        ctx.fillRect(x, 238, 40, 8);
+      }
+    } else if (mapId === "newmarket") {
+      ctx.fillStyle = "#f59e0b";
+      ctx.fillRect(0, 238, BALANCE.LOGICAL_WIDTH, 10);
+      ctx.fillStyle = "#64748b";
+      for (let x = 20; x < BALANCE.LOGICAL_WIDTH; x += 150) {
+        ctx.fillRect(x, 270, 70, 4);
+      }
+    }
+    this.textures.addCanvas(key, canvas);
+  }
+
+  private generateMetroTrackTexture(key: string, mapId: "mirpur" | "farmgate") {
+    const canvas = document.createElement("canvas");
+    canvas.width = BALANCE.LOGICAL_WIDTH;
+    canvas.height = 50;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = mapId === "farmgate" ? "#475569" : "#64748b";
+    ctx.fillRect(0, 10, BALANCE.LOGICAL_WIDTH, 18);
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(0, 28, BALANCE.LOGICAL_WIDTH, 7);
+    ctx.strokeStyle = "#111827";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 10, BALANCE.LOGICAL_WIDTH, 25);
+    for (let x = mapId === "farmgate" ? 25 : 45; x < BALANCE.LOGICAL_WIDTH; x += mapId === "farmgate" ? 120 : 160) {
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillRect(x, 35, 28, 15);
+      ctx.strokeRect(x, 35, 28, 15);
+    }
     this.textures.addCanvas(key, canvas);
   }
 }

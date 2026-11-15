@@ -46,7 +46,7 @@ export const MAP_SCENARIOS: MapScenario[] = [
     badgeText: "মিরপুর ১০",
     skyKey: "bg-sky-mirpur",
     nearKey: "bg-near-mirpur",
-    roadKey: "bg-road",
+    roadKey: "bg-road-mirpur",
     timeOfDay: "noon",
     ambientEvent: "ধূলাবালি ও ম্যানহোল",
     hazards: {
@@ -78,7 +78,7 @@ export const MAP_SCENARIOS: MapScenario[] = [
     badgeText: "ফার্মগেট",
     skyKey: "bg-sky-farmgate",
     nearKey: "bg-near-farmgate",
-    roadKey: "bg-road",
+    roadKey: "bg-road-farmgate",
     timeOfDay: "sunset",
     ambientEvent: "বাসের হর্ন ও জ্যাম",
     hazards: {
@@ -110,7 +110,7 @@ export const MAP_SCENARIOS: MapScenario[] = [
     badgeText: "নিউ মার্কেট",
     skyKey: "bg-sky-newmarket",
     nearKey: "bg-near-newmarket",
-    roadKey: "bg-road",
+    roadKey: "bg-road-newmarket",
     timeOfDay: "night",
     ambientEvent: "১০০ টাকা সেল ও ফুচকা",
     hazards: {

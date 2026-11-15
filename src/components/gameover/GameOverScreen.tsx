@@ -6,6 +6,7 @@ import { useGameStore } from "@/store/useGameStore";
 import { audioService } from "@/services/audio";
 import { Trophy, RotateCcw, User, FileText } from "lucide-react";
 import { WantedPosterModal } from "@/components/game/WantedPosterModal";
+import { useI18n } from "@/i18n";
 
 export function GameOverScreen() {
   const [isPosterOpen, setIsPosterOpen] = useState(false);
@@ -25,6 +26,7 @@ export function GameOverScreen() {
     startGame,
     resetRun,
   } = useGameStore();
+  const { lang, t } = useI18n();
 
   const isWin = villainHp === 0;
   const isPatienceFail = !isWin && failReason === "patience_zero";
@@ -78,10 +80,10 @@ export function GameOverScreen() {
           }`}
         >
           {isWin
-            ? "MISSION ACCOMPLISHED!"
+            ? t("missionAccomplished")
             : isPatienceFail
-            ? "OUT OF PATIENCE!"
-            : "TARGET ESCAPED!"}
+            ? t("outOfPatience")
+            : t("targetEscaped")}
         </div>
 
         {/* Big Bengali Headline */}
@@ -95,7 +97,7 @@ export function GameOverScreen() {
                 : "text-rose-400"
             }`}
           >
-            {isWin ? "ধরা খাইছে!" : isPatienceFail ? "হাল ছেড়ে দিলে?!" : "পালাইছে!"}
+            {isWin ? t("victory") : t("defeat")}
           </h2>
           <p className="font-bangla mt-1 text-sm font-semibold text-slate-300">
             {isWin
@@ -181,7 +183,7 @@ export function GameOverScreen() {
         <div className="grid grid-cols-3 gap-2 w-full">
           <div className="rounded-xl border border-slate-800 bg-slate-950 p-2.5">
             <span className="text-[10px] font-mono text-slate-400 uppercase">
-              Rage Score
+              {t("score")}
             </span>
             <div className="font-mono text-base sm:text-lg font-bold text-rose-400">
               {rageScore}
@@ -199,7 +201,7 @@ export function GameOverScreen() {
 
           <div className="rounded-xl border border-slate-800 bg-slate-950 p-2.5">
             <span className="text-[10px] font-mono text-slate-400 uppercase">
-              Taka
+              {t("taka")}
             </span>
             <div className="font-mono text-base sm:text-lg font-bold text-emerald-400">
               ৳{taka}
@@ -214,7 +216,7 @@ export function GameOverScreen() {
               onClick={handleNextStage}
               className="flex items-center justify-center gap-2 rounded-2xl border-2 border-black bg-gradient-to-r from-emerald-500 to-teal-400 py-3.5 font-comic text-xl text-black shadow-lg hover:from-emerald-400 hover:to-teal-300"
             >
-              পরবর্তী স্টেজ / NEXT STAGE →
+              {t("nextMap")} →
             </button>
           )}
 
@@ -222,7 +224,7 @@ export function GameOverScreen() {
             onClick={handleRetry}
             className="flex items-center justify-center gap-2 rounded-2xl border-2 border-black bg-gradient-to-r from-amber-500 to-yellow-400 py-3.5 font-comic text-xl text-black shadow-lg hover:from-amber-400 hover:to-yellow-300"
           >
-            <RotateCcw className="h-6 w-6" /> আবার পেটান (RETRY)
+            <RotateCcw className="h-6 w-6" /> {t("replay")}
           </button>
 
           <button
@@ -236,7 +238,7 @@ export function GameOverScreen() {
             onClick={handleChangeFace}
             className="flex items-center justify-center gap-2 rounded-2xl border-2 border-black bg-slate-800 py-3 font-comic text-sm text-slate-200 hover:bg-slate-700 hover:text-white"
           >
-            <User className="h-4 w-4" /> CHANGE TARGET / নতুন মুখ
+            <User className="h-4 w-4" /> {lang === "bn" ? "নতুন মুখ" : "Change Target"}
           </button>
         </div>
       </motion.div>

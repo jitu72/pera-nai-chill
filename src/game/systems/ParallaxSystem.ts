@@ -14,6 +14,7 @@ export class ParallaxSystem {
   private scene: Phaser.Scene;
   private skyTile!: Phaser.GameObjects.TileSprite;
   private farBuildingsTile!: Phaser.GameObjects.TileSprite;
+  private landmarkTile!: Phaser.GameObjects.TileSprite;
   private metroTrackTile!: Phaser.GameObjects.TileSprite;
   private metroTrainSprite!: Phaser.GameObjects.Sprite;
   private nearBuildingsTile!: Phaser.GameObjects.TileSprite;
@@ -54,12 +55,11 @@ export class ParallaxSystem {
         ? "bg-sky-newmarket"
         : "bg-sky-mirpur";
 
-    const nearKey =
-      mapId === "farmgate"
-        ? "bg-near-farmgate"
-        : mapId === "newmarket"
-        ? "bg-near-newmarket"
-        : "bg-near-buildings";
+    const farKey = `bg-far-${mapId}`;
+    const nearKey = `bg-near-${mapId}`;
+    const landmarkKey = `bg-landmark-${mapId}`;
+    const roadKey = mapScenario?.roadKey || "bg-road";
+    const metroKey = mapId === "newmarket" ? null : `prop-metro-track-${mapId}`;
 
     // Layer 1: Sky (speed 0.1)
     this.skyTile = this.scene.add
@@ -69,20 +69,38 @@ export class ParallaxSystem {
 
     // Layer 2: Far Skyline Silhouettes (speed 0.3)
     this.farBuildingsTile = this.scene.add
-      .tileSprite(0, 140, W, 300, "bg-far-buildings")
+      .tileSprite(
+        0,
+        140,
+        W,
+        300,
+        this.scene.textures.exists(farKey) ? farKey : "bg-far-buildings"
+      )
       .setOrigin(0, 0)
       .setDepth(1);
 
-    // Layer 2.5: Elevated Metro Track
-    if (this.scene.textures.exists("prop-metro-track")) {
+    // Layer 2.5: Location landmark silhouette
+    this.landmarkTile = this.scene.add
+      .tileSprite(
+        0,
+        100,
+        W,
+        260,
+        this.scene.textures.exists(landmarkKey) ? landmarkKey : "bg-far-buildings"
+      )
+      .setOrigin(0, 0)
+      .setDepth(1.7);
+
+    // Layer 2.6: Elevated MRT structure where it belongs
+    if (metroKey && this.scene.textures.exists(metroKey)) {
       this.metroTrackTile = this.scene.add
-        .tileSprite(0, 100, W, 50, "prop-metro-track")
+        .tileSprite(0, 100, W, 50, metroKey)
         .setOrigin(0, 0)
         .setDepth(1.4);
     }
 
     // Metro Train MRT-6
-    if (this.scene.textures.exists("prop-metro-train")) {
+    if (metroKey && this.scene.textures.exists("prop-metro-train")) {
       this.metroTrainSprite = this.scene.add
         .sprite(W + 400, 112, "prop-metro-train")
         .setOrigin(0, 0.5)
@@ -91,13 +109,25 @@ export class ParallaxSystem {
 
     // Layer 3: Near Buildings with colorful Dhaka signage (speed 0.6)
     this.nearBuildingsTile = this.scene.add
-      .tileSprite(0, 110, W, 360, this.scene.textures.exists(nearKey) ? nearKey : "bg-near-buildings")
+      .tileSprite(
+        0,
+        110,
+        W,
+        360,
+        this.scene.textures.exists(nearKey) ? nearKey : "bg-near-buildings"
+      )
       .setOrigin(0, 0)
       .setDepth(2);
 
     // Layer 4: Asphalt Road (3 Lanes - speed 1.0)
     this.roadTile = this.scene.add
-      .tileSprite(0, 350, W, 370, "bg-road")
+      .tileSprite(
+        0,
+        350,
+        W,
+        370,
+        this.scene.textures.exists(roadKey) ? roadKey : "bg-road"
+      )
       .setOrigin(0, 0)
       .setDepth(3);
 
@@ -161,6 +191,7 @@ export class ParallaxSystem {
     // 1. Update tilePositionX for smooth distinct speeds (0.1, 0.3, 0.6, 1.0)
     this.skyTile.tilePositionX += effectiveSpeed * 0.1 * dt;
     this.farBuildingsTile.tilePositionX += effectiveSpeed * 0.3 * dt;
+    this.landmarkTile.tilePositionX += effectiveSpeed * 0.4 * dt;
     if (this.metroTrackTile) {
       this.metroTrackTile.tilePositionX += effectiveSpeed * 0.35 * dt;
     }
@@ -280,6 +311,7 @@ export class ParallaxSystem {
   public setAmbientTint(tint: number) {
     this.farBuildingsTile.setTint(tint);
     this.nearBuildingsTile.setTint(tint);
+    this.landmarkTile.setTint(tint);
     this.roadTile.setTint(tint);
     if (this.metroTrackTile) {
       this.metroTrackTile.setTint(tint);

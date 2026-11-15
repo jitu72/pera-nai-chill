@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Smartphone } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 export function OrientationGuard() {
   const [isPortraitMobile, setIsPortraitMobile] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     const checkOrientation = () => {
@@ -33,17 +35,17 @@ export function OrientationGuard() {
       </div>
 
       <h2 className="font-comic text-2xl tracking-wide text-amber-400 sm:text-3xl">
-        PLEASE ROTATE DEVICE
+        {t("rotateDevice")}
       </h2>
       <p className="mt-2 font-bangla text-base font-bold text-rose-400 sm:text-lg">
-        সেরা অভিজ্ঞতার জন্য ফোনটি ল্যান্ডস্কেপ (আড়াআড়ি) করুন!
+        {t("rotateDescription")}
       </p>
 
       <button
         onClick={() => setIsPortraitMobile(false)}
         className="mt-6 rounded-xl border-2 border-black bg-slate-800 px-5 py-2 font-comic text-xs uppercase text-slate-300 hover:bg-slate-700"
       >
-        Play in portrait anyway
+        {t("playPortrait")}
       </button>
     </div>
   );

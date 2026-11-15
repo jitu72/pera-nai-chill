@@ -26,6 +26,7 @@ import { DemoRunner } from "@/components/game/DemoRunner";
 import { Settings, Play, ShoppingBag, Trophy, FileText } from "lucide-react";
 import { audioService } from "@/services/audio";
 import { faceService } from "@/services/faceService";
+import { useI18n } from "@/i18n";
 
 export function AppShell() {
   const {
@@ -37,13 +38,24 @@ export function AppShell() {
     setTargetFace,
     setDebugOpen,
     setDemoMode,
+    hydrateSettings,
+    settings,
   } = useGameStore();
+  const { lang, t } = useI18n();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isPosterOpen, setIsPosterOpen] = useState(false);
   const logoTapRef = useRef(0);
+
+  useEffect(() => {
+    hydrateSettings();
+  }, [hydrateSettings]);
+
+  useEffect(() => {
+    audioService.setMuted(!settings.sound);
+  }, [settings.sound]);
 
   // Check URL parameters for ?debug=1 and ?demo=1
   useEffect(() => {
@@ -107,16 +119,16 @@ export function AppShell() {
               <span>ঢাকার রাস্তায়, নিজের ছন্দে।</span>
             </button>
             <nav aria-label="লবি মেনু" className="pnc-nav">
-              <button onClick={() => setIsShopOpen(true)} aria-label="দোকান / Shop"><ShoppingBag /><span>দোকান</span></button>
-              <button onClick={() => setIsAchievementsOpen(true)} aria-label="অর্জন / Achievements"><Trophy /><span>অর্জন</span></button>
-              <button onClick={() => setIsPosterOpen(true)} aria-label="পোস্টার / Wanted poster"><FileText /><span>পোস্টার</span></button>
-              <button onClick={() => setIsSettingsOpen(true)} aria-label="সেটিংস / Settings"><Settings /></button>
+              <button onClick={() => setIsShopOpen(true)} aria-label={t("shop")}><ShoppingBag /><span>{t("shop")}</span></button>
+              <button onClick={() => setIsAchievementsOpen(true)} aria-label={t("achievements")}><Trophy /><span>{t("achievements")}</span></button>
+              <button onClick={() => setIsPosterOpen(true)} aria-label={t("wantedPoster")}><FileText /><span>{t("wantedPoster")}</span></button>
+              <button onClick={() => setIsSettingsOpen(true)} aria-label={t("settings")}><Settings /></button>
             </nav>
           </header>
           <main className="pnc-main">
             <div className="pnc-intro">
-              <h1>মুখের ছবি দিন। রুট ঠিক করুন।</h1>
-              <p>নিজের ছবি দিন বা তৈরি মুখ রাখুন। তারপর ভিলেন আর রুট বেছে নিন।</p>
+              <h1>{t("introTitle")}</h1>
+              <p>{t("introDescription")}</p>
             </div>
             <div className="pnc-face-section"><FaceUploader /></div>
             <div className="pnc-setup">
@@ -136,8 +148,11 @@ export function AppShell() {
           <WantedPosterModal isOpen={isPosterOpen} onClose={() => setIsPosterOpen(false)} />
           <footer className="pnc-launch">
             <div>
-              <p aria-live="polite">{VILLAINS.find(v => v.id === villainId)?.name.bn} <span> / </span> {MAP_SCENARIOS.find(m => m.id === currentMapId)?.name.bn}</p>
-              <button onClick={handleStartGame} className="pnc-start"><Play aria-hidden="true" /><span>রাস্তায় নামুন <small>Start run</small></span></button>
+              <p aria-live="polite">
+                {VILLAINS.find(v => v.id === villainId)?.name[lang]} <span> / </span>
+                {MAP_SCENARIOS.find(m => m.id === currentMapId)?.name[lang]}
+              </p>
+              <button onClick={handleStartGame} className="pnc-start"><Play aria-hidden="true" /><span>{t("startRun")} <small>{t("startRun")}</small></span></button>
             </div>
           </footer>
         </div>

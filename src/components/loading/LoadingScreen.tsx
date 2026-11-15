@@ -6,9 +6,11 @@ import { useGameStore } from "@/store/useGameStore";
 import { LOADING_TIPS } from "@/config/tips";
 import { audioService } from "@/services/audio";
 import { Sparkles, Zap } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 export function LoadingScreen() {
   const { loading, setLoading, setScreen, settings } = useGameStore();
+  const { t } = useI18n();
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [showPlayAnyway, setShowPlayAnyway] = useState(false);
   const [displayProgress, setDisplayProgress] = useState(0);
@@ -234,7 +236,7 @@ export function LoadingScreen() {
 
         {/* Progress Percentage Display */}
         <div className="flex w-full items-center justify-between text-xs font-mono font-bold text-slate-900">
-          <span>{displayProgress < 100 ? "LOADING ASSETS..." : "READY!"}</span>
+          <span>{displayProgress < 100 ? t("loadingAssets") : t("ready")}</span>
           <span>{displayProgress}%</span>
         </div>
 
@@ -268,14 +270,14 @@ export function LoadingScreen() {
             className="flex items-center gap-3 rounded-2xl border-4 border-black bg-rose-500 px-8 py-4 font-comic text-2xl tracking-wider text-white shadow-[0_6px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 active:shadow-none"
           >
             <Zap className="h-6 w-6 fill-yellow-300 text-yellow-300" />
-            <span>TAP TO START / শুরু করুন</span>
+            <span>{t("tapToStart")}</span>
           </motion.button>
         ) : showPlayAnyway ? (
           <button
             onClick={handleStart}
             className="rounded-xl border-2 border-black/50 bg-black/30 px-4 py-2 font-mono text-xs text-yellow-200 underline hover:bg-black/50"
           >
-            Slow network? Play anyway &rarr;
+            {t("playAnyway")} &rarr;
           </button>
         ) : null}
       </div>

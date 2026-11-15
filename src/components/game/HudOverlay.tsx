@@ -29,6 +29,7 @@ import {
   Megaphone,
 } from "lucide-react";
 import { COMBO_NAMES, COMMENTATOR_TICKER, ComboTier } from "@/config/dialogue";
+import { useI18n } from "@/i18n";
 
 export function HudOverlay() {
   const {
@@ -62,6 +63,7 @@ export function HudOverlay() {
     updateSettings,
     setDebugOpen,
   } = useGameStore();
+  const { t } = useI18n();
 
   const currentCrime =
     CRIMES.find((c) => c.id === crimeId) || CRIMES[0];
@@ -265,7 +267,7 @@ export function HudOverlay() {
               {/* Wanted Crime Tag Banner */}
               <div className="flex items-center gap-1 mt-0.5 truncate">
                 <span className="rounded bg-rose-600 px-1 py-0.2 font-comic text-[9px] font-bold text-white uppercase shrink-0">
-                  WANTED
+                  {t("wanted")}
                 </span>
                 <span className="font-bangla text-[10px] font-bold text-yellow-200 truncate">
                   {currentCrime.icon} {currentCrime.title.bn}
@@ -275,7 +277,7 @@ export function HudOverlay() {
               {/* Villain Morale Bar (P2-10) */}
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="font-comic text-[8px] font-bold text-purple-300 uppercase shrink-0">
-                  MORALE
+                  {t("morale")}
                 </span>
                 <div className="relative h-1.5 flex-1 overflow-hidden rounded-full border border-black/60 bg-slate-950">
                   <div
@@ -349,7 +351,7 @@ export function HudOverlay() {
           <button
             onClick={handleSoundToggle}
             className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-black bg-slate-900/80 text-yellow-300 shadow-md backdrop-blur-md hover:bg-slate-800"
-            title="Toggle Sound"
+            title={t("sound")}
           >
             {settings.sound ? (
               <Volume2 className="h-5 w-5" />
@@ -485,14 +487,14 @@ export function HudOverlay() {
         <div className="flex items-center gap-1.5 rounded-xl border border-black/80 bg-slate-900/85 px-3 py-1.5 shadow-md backdrop-blur-md">
           <span className="text-base text-amber-400">৳</span>
           <span className="font-mono text-sm sm:text-base font-bold text-yellow-300">
-            {taka} Taka
+            {taka} {t("taka")}
           </span>
         </div>
 
         {/* Stamina Bar */}
         <div className="flex flex-col gap-0.5 rounded-xl border border-black/80 bg-slate-900/85 px-2.5 py-1.5 shadow-md backdrop-blur-md">
           <div className="flex items-center justify-between text-[10px] font-mono text-slate-300">
-            <span>STAMINA</span>
+            <span>{t("stamina").toUpperCase()}</span>
             <span>{Math.round(stamina)}%</span>
           </div>
           <div className="relative h-2 w-full overflow-hidden rounded-full border border-black bg-slate-950">
@@ -616,29 +618,29 @@ export function HudOverlay() {
       {isPaused && (
         <div className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm">
           <div className="flex w-full max-w-xs flex-col items-center gap-4 rounded-3xl border-4 border-yellow-400 bg-slate-900 p-6 shadow-2xl text-center">
-            <h2 className="font-comic text-3xl text-yellow-300">PAUSED</h2>
-            <p className="font-bangla text-sm text-slate-300">সাময়িক বিরতি</p>
+            <h2 className="font-comic text-3xl text-yellow-300">{t("paused")}</h2>
+            <p className="font-bangla text-sm text-slate-300">{t("pause")}</p>
 
             <div className="flex w-full flex-col gap-2.5 mt-2">
               <button
                 onClick={togglePause}
                 className="flex items-center justify-center gap-2 rounded-xl border-2 border-black bg-emerald-500 py-3 font-comic text-base text-black shadow-md hover:bg-emerald-400"
               >
-                <Play className="h-5 w-5 fill-black" /> RESUME / চালিয়ে যান
+                <Play className="h-5 w-5 fill-black" /> {t("resume")}
               </button>
 
               <button
                 onClick={handleRestart}
                 className="flex items-center justify-center gap-2 rounded-xl border-2 border-black bg-amber-500 py-3 font-comic text-base text-black shadow-md hover:bg-amber-400"
               >
-                <RotateCcw className="h-5 w-5" /> RESTART / পুনরায় শুরু
+                <RotateCcw className="h-5 w-5" /> {t("restart")}
               </button>
 
               <button
                 onClick={handleBackToLobby}
                 className="flex items-center justify-center gap-2 rounded-xl border-2 border-black bg-slate-700 py-2.5 font-comic text-sm text-white hover:bg-slate-600"
               >
-                <Home className="h-4 w-4" /> LOBBY / লবি
+                <Home className="h-4 w-4" /> {t("lobby")}
               </button>
             </div>
           </div>

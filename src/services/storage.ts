@@ -22,6 +22,15 @@ export interface SaveDataV1 {
 }
 
 export const STORAGE_KEY_V1 = "pernaichill_save_v1";
+export const SETTINGS_STORAGE_KEY = "pernaichill_settings_v1";
+
+export interface PersistedSettings {
+  sound: boolean;
+  haptics: boolean;
+  quality: "high" | "low";
+  lang: "en" | "bn";
+  reducedMotion: boolean;
+}
 
 export const DEFAULT_SAVE_DATA_V1: SaveDataV1 = {
   version: 1,
@@ -35,6 +44,41 @@ export const DEFAULT_SAVE_DATA_V1: SaveDataV1 = {
   claimedAchievements: [],
   lastSavedAt: 0,
 };
+
+export function loadSettings(defaults: PersistedSettings): PersistedSettings {
+  if (typeof window === "undefined") return { ...defaults };
+
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return { ...defaults };
+    const parsed = JSON.parse(raw) as Partial<PersistedSettings>;
+    return {
+      ...defaults,
+      ...parsed,
+      sound: typeof parsed.sound === "boolean" ? parsed.sound : defaults.sound,
+      haptics: typeof parsed.haptics === "boolean" ? parsed.haptics : defaults.haptics,
+      quality: parsed.quality === "low" ? "low" : parsed.quality === "high" ? "high" : defaults.quality,
+      lang: parsed.lang === "en" ? "en" : parsed.lang === "bn" ? "bn" : defaults.lang,
+      reducedMotion:
+        typeof parsed.reducedMotion === "boolean"
+          ? parsed.reducedMotion
+          : defaults.reducedMotion,
+    };
+  } catch {
+    return { ...defaults };
+  }
+}
+
+export function saveSettings(settings: PersistedSettings): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Attempts to parse legacy keys if they exist and returns migrated values.

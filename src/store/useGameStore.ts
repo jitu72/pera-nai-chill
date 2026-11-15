@@ -14,6 +14,12 @@ import {
   StarResult,
 } from "@/config/rules";
 import { recordMapStars } from "@/services/storage";
+import {
+  loadSettings,
+  saveSettings,
+  PersistedSettings,
+} from "@/services/storage";
+import { audioService } from "@/services/audio";
 
 export type GameScreen = "BOOT" | "LOBBY" | "PLAYING" | "PAUSED" | "GAME_OVER";
 export type TimeOfDay = "noon" | "goldenHour" | "night" | "dawn";
@@ -28,13 +34,7 @@ export interface LoadingProgress {
   overall: number;
 }
 
-export interface GameSettings {
-  sound: boolean;
-  haptics: boolean;
-  quality: "high" | "low";
-  lang: "en" | "bn";
-  reducedMotion: boolean;
-}
+export type GameSettings = PersistedSettings;
 
 export interface GameState {
   // Screen state
@@ -124,6 +124,7 @@ export interface GameState {
   decrementEventTimer: (delta: number) => void;
   resetRun: () => void;
   updateSettings: (partial: Partial<GameSettings>) => void;
+  hydrateSettings: () => void;
   setDebugOpen: (open: boolean) => void;
   toggleDebug: () => void;
   setDemoMode: (active: boolean) => void;
@@ -176,13 +177,13 @@ export const useGameStore = create<GameState>()(
     activeEvent: null,
     eventTimeLeft: 0,
 
-    settings: {
+    settings: loadSettings({
       sound: true,
       haptics: true,
       quality: "high",
       lang: "bn",
       reducedMotion: false,
-    },
+    }),
 
     isDebugOpen: false,
     isDemoMode: false,
@@ -442,8 +443,17 @@ export const useGameStore = create<GameState>()(
         eventTimeLeft: 0,
       }),
 
-    updateSettings: (partial) =>
-      set((state) => ({ settings: { ...state.settings, ...partial } })),
+    updateSettings: (partial) => {
+      const next = { ...get().settings, ...partial };
+      set({ settings: next });
+      saveSettings(next);
+      audioService.setMuted(!next.sound);
+    },
+    hydrateSettings: () => {
+      const next = loadSettings(get().settings);
+      set({ settings: next });
+      audioService.setMuted(!next.sound);
+    },
 
     setDebugOpen: (open) => set({ isDebugOpen: open }),
     toggleDebug: () => set((state) => ({ isDebugOpen: !state.isDebugOpen })),
